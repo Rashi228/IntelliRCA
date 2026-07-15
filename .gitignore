@@ -1,0 +1,111 @@
+# ----------------------------------------------------------------------
+# Environment Variables & Secrets (CRITICAL)
+# ----------------------------------------------------------------------
+.env
+.env.local
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+
+# ----------------------------------------------------------------------
+# Backend (Python / FastAPI)
+# ----------------------------------------------------------------------
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Testing and coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# ----------------------------------------------------------------------
+# Frontend (Node.js / React)
+# ----------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Production builds
+dist/
+build/
+out/
+.next/
+
+# ----------------------------------------------------------------------
+# Docker & Infrastructure
+# ----------------------------------------------------------------------
+# Local database data (if mapped locally)
+/backend/data/
+/backend/qdrant_data/
+/backend/kafka_data/
+/backend/neo4j_data/
+/backend/logs/
+*.log
+
+# ----------------------------------------------------------------------
+# OS & IDE Files
+# ----------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Tt]humbs.db
+[Dd]esktop.ini
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
