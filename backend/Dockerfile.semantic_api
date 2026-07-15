@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt requirements-ai.txt ./
-RUN pip install -r requirements.txt -r requirements-ai.txt
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-ai.txt
 
 # Pre-download the huggingface model
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('BAAI/bge-small-en-v1.5')"

@@ -20,6 +20,7 @@ class KafkaProducerClient:
         except Exception as e:
             logger.error("kafka_producer_connection_failed", error=str(e))
             self.producer = None
+            raise
 
     async def stop(self):
         if self.producer:
