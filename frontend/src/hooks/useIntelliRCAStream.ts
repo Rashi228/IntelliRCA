@@ -43,7 +43,7 @@ export function useIntelliRCAStream() {
     const token = session?.access_token || '';
     
     // We append the JWT token to the WebSocket query string for backend verification
-    const wsUrl = `ws://localhost:8000/ws/rca/${incidentId}?token=${token}`;
+    const wsUrl = `ws://localhost:8090/ws/rca/${incidentId}?token=${token}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
