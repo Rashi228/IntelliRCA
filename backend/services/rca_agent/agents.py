@@ -18,7 +18,13 @@ def graph_agent(state: GraphState):
 
 def memory_agent(state: GraphState):
     logger.info("agent_executing", agent="memory")
-    return {} # Future: Analyze semantic history
+    # Simulate retrieving similar historical incidents from Qdrant
+    historical = state["evidence"].get("historical_incidents", [])
+    if historical:
+        reasoning = f"Found {len(historical)} similar past incidents. Pattern suggests recurrent issue."
+    else:
+        reasoning = "No similar historical incidents found in Memory Graph."
+    return {"timeline": f"{state.get('timeline', '')}\n[Memory Agent]: {reasoning}"}
 
 def topology_agent(state: GraphState):
     logger.info("agent_executing", agent="topology")
@@ -26,8 +32,16 @@ def topology_agent(state: GraphState):
 
 def business_impact_agent(state: GraphState):
     logger.info("agent_executing", agent="business_impact")
-    context = state["evidence"]["business_context"]
-    return {"business_impact": context}
+    context = state["evidence"].get("business_context", "Unknown")
+    
+    # Calculate blast radius based on topology context
+    affected = state.get("affected_services", [])
+    if len(affected) > 0:
+        impact = f"High Impact: {len(affected)} services degraded. Context: {context}"
+    else:
+        impact = f"Low Impact: Isolated incident. Context: {context}"
+        
+    return {"business_impact": impact}
 
 def rca_agent(state: GraphState):
     logger.info("agent_executing", agent="rca")

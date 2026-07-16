@@ -1,125 +1,181 @@
+import React, { useState, useEffect } from 'react';
+import { useIntelliRCAStream } from '../hooks/useIntelliRCAStream';
+import { CommandCenter } from '../components/CommandCenter';
+import { Timeline } from '../components/Timeline';
+import { KnowledgeGraph } from '../components/KnowledgeGraph';
+import { SemanticGraph } from '../components/SemanticGraph';
+import { ShieldAlert, Network, Share2, History, X, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Settings, Users, Activity, LogOut, Database, Network, BrainCircuit } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 
 export function DashboardPage() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { 
+    isStreaming, 
+    events, 
+    rcaReport, 
+    graphNodes, 
+    startStream,
+    historicalIncidents,
+    fetchHistoricalIncidents,
+    loadHistoricalIncident
+  } = useIntelliRCAStream();
+  const { logout, user } = useAuth();
+  const [activeTab, setActiveTab] = React.useState<'topology' | 'semantic'>('semantic');
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  useEffect(() => {
+    fetchHistoricalIncidents();
+  }, [fetchHistoricalIncidents]);
 
   return (
-    <div className="min-h-screen flex bg-[var(--color-light-bg)] selection:bg-blue-200">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col relative z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        <div className="p-6 flex items-center gap-3 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center border border-blue-100">
-            <Activity className="w-5 h-5 text-blue-600" />
+    <div className="h-screen w-screen flex flex-col overflow-hidden text-slate-800 font-sans" style={{ backgroundColor: 'var(--color-aiops-bg)' }}>
+      
+      {/* Global Top Navbar */}
+      <header className="h-16 border-b border-blue-100 bg-white/60 backdrop-blur-md flex items-center px-6 justify-between z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-teal-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <ShieldAlert size={20} className="text-white" />
           </div>
-          <span className="font-extrabold text-xl text-slate-800 tracking-tight">IntelliRCA</span>
+          <h1 className="text-xl font-bold tracking-tight text-slate-800">
+            Intelli<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-teal-500">RCA</span>
+          </h1>
         </div>
         
-        <nav className="flex-1 p-4 space-y-2">
-          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 mt-2 px-2">
-            Operations
+        <div className="flex items-center gap-6">
+          <button 
+            onClick={() => setIsHistoryOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors text-sm font-medium"
+          >
+            <History size={16} />
+            Past Incidents
+          </button>
+          
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </span>
+            <span className="text-sm font-medium text-slate-700">System Operational</span>
           </div>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 text-blue-700 font-bold transition-all shadow-[inset_0_0_0_1px_rgba(37,99,235,0.1)]">
-            <Shield className="w-5 h-5" /> Live Alerts
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-semibold hover:bg-slate-50 hover:text-slate-900 transition-all">
-            <Network className="w-5 h-5" /> Knowledge Graph
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-semibold hover:bg-slate-50 hover:text-slate-900 transition-all">
-            <Database className="w-5 h-5" /> RCA Engine
-          </button>
+          
+          <div className="flex items-center gap-4 border-l border-blue-200 pl-4">
+            <span className="text-sm text-slate-600 font-medium">{user?.name || 'Engineer'} <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded ml-1">{user?.role}</span></span>
+            <button onClick={logout} className="text-xs bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm transition-colors">
+              Logout
+            </button>
+          </div>
+        </div>
+      </header>
 
-          {/* Admin Only Section */}
-          {user?.role === 'Admin' && (
-            <>
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 mt-8 px-2">
-                Administration
-              </div>
-              <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-semibold hover:bg-slate-50 hover:text-slate-900 transition-all">
-                <Users className="w-5 h-5" /> Manage Users
-              </button>
-              <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-semibold hover:bg-slate-50 hover:text-slate-900 transition-all">
-                <Settings className="w-5 h-5" /> System Settings
-              </button>
-            </>
+      {/* Main Dashboard Layout */}
+      <main className="flex-1 grid grid-cols-12 gap-4 p-4 overflow-hidden relative">
+        {/* Left Column: Command Center & AI Intelligence */}
+        <div className="col-span-3 h-full min-h-0 overflow-y-auto custom-scrollbar pr-2 flex flex-col">
+          <CommandCenter 
+            onTrigger={(payload) => startStream(payload.incident_id, payload)} 
+            isStreaming={isStreaming} 
+            rcaReport={rcaReport}
+          />
+        </div>
+
+        {/* Center Column: Explainable AI Timeline */}
+        <div className="col-span-4 h-full min-h-0 flex flex-col">
+          <Timeline events={events} />
+        </div>
+
+        {/* Right Column: Dynamic Knowledge Graph / Semantic Graph */}
+        <div className="col-span-5 h-full min-h-0 flex flex-col relative">
+          {activeTab === 'topology' ? (
+            <KnowledgeGraph discoveredNodes={graphNodes} />
+          ) : (
+            <SemanticGraph discoveredNodes={graphNodes} />
           )}
-        </nav>
 
-        <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-slate-200 mb-4 shadow-sm">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200">
-              {user?.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="overflow-hidden">
-              <div className="text-sm font-bold text-slate-800 truncate">{user?.name}</div>
-              <div className="text-xs font-semibold text-blue-600 bg-blue-50 inline-block px-2 py-0.5 rounded-full mt-1">
-                {user?.role}
-              </div>
-            </div>
+          {/* Floating Tab Switcher (Bottom Right) */}
+          <div className="absolute bottom-6 right-6 z-20 flex bg-white/90 backdrop-blur-sm p-1 rounded-xl border border-slate-200 shadow-lg">
+            <button
+              onClick={() => setActiveTab('semantic')}
+              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+                activeTab === 'semantic' 
+                  ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-200/50' 
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Share2 size={14} /> Semantic Cluster
+            </button>
+            <button
+              onClick={() => setActiveTab('topology')}
+              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+                activeTab === 'topology' 
+                  ? 'bg-teal-50 text-teal-700 shadow-sm border border-teal-200/50' 
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Network size={14} /> Causal Flow
+            </button>
           </div>
-          <button onClick={handleLogout} className="w-full btn-3d flex items-center justify-center gap-2 text-red-600 hover:text-red-700 border-slate-200 shadow-sm">
-            <LogOut className="w-4 h-4" /> Sign Out
+        </div>
+      </main>
+
+      {/* History Sidebar */}
+      <div className={`fixed inset-y-0 right-0 w-96 bg-white shadow-2xl border-l border-slate-200 z-50 transform transition-transform duration-300 ease-in-out ${isHistoryOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
+        <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+          <div className="flex items-center gap-2 text-slate-800">
+            <History size={18} className="text-indigo-600" />
+            <h2 className="font-bold text-lg">Incident History</h2>
+          </div>
+          <button onClick={() => setIsHistoryOpen(false)} className="text-slate-400 hover:text-slate-800">
+            <X size={20} />
           </button>
         </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 p-10 overflow-y-auto relative">
-        <header className="mb-10 flex justify-between items-end">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <h1 className="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Welcome back, {user?.name.split(' ')[0]}</h1>
-            <p className="text-slate-500 font-medium text-lg">Here's your {user?.role} overview for today.</p>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="px-4 py-2.5 rounded-full bg-emerald-50 text-emerald-700 text-sm font-bold border border-emerald-200 flex items-center gap-2 shadow-sm">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-            System Operational
-          </motion.div>
-        </header>
-
-        {/* Dashboard Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="card-glass p-6">
-            <div className="flex items-center gap-3 text-slate-500 font-semibold mb-4">
-               <Shield className="w-5 h-5 text-red-500" /> Active Incidents
-            </div>
-            <div className="text-5xl font-extrabold text-slate-800">12</div>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card-glass p-6">
-            <div className="flex items-center gap-3 text-slate-500 font-semibold mb-4">
-               <Network className="w-5 h-5 text-blue-500" /> Correlated Alerts
-            </div>
-            <div className="text-5xl font-extrabold text-slate-800">1,204</div>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card-glass p-6">
-            <div className="flex items-center gap-3 text-slate-500 font-semibold mb-4">
-               <BrainCircuit className="w-5 h-5 text-emerald-500" /> AI Confidence
-            </div>
-            <div className="text-5xl font-extrabold text-slate-800">94<span className="text-2xl text-slate-400">%</span></div>
-          </motion.div>
-        </div>
-
-        {/* RCA Visualization Placeholder */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card-glass p-8 h-[450px] flex flex-col">
-          <div className="font-bold text-slate-800 text-lg mb-6">Live Incident Knowledge Graph</div>
-          <div className="flex-1 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center relative overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)]">
-            <Network className="w-32 h-32 text-slate-200 absolute opacity-50" />
-            <div className="text-center z-10">
-              <div className="text-sm font-semibold text-slate-500 mb-4 max-w-sm mx-auto">
-                React Flow / Cytoscape Interactive Graph will be rendered here.
+        
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-3">
+          {historicalIncidents.length === 0 ? (
+            <div className="text-center text-slate-500 mt-10">No past incidents found.</div>
+          ) : (
+            historicalIncidents.map((incident: any) => (
+              <div 
+                key={incident.id} 
+                onClick={() => {
+                  loadHistoricalIncident(incident);
+                  setIsHistoryOpen(false);
+                }}
+                className="p-4 border border-slate-200 rounded-xl hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer bg-white group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                    {incident.target_id}
+                  </span>
+                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <Clock size={12} />
+                    {new Date(incident.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <h3 className="text-sm font-semibold text-slate-800 mb-1 group-hover:text-indigo-700 transition-colors line-clamp-2">
+                  {incident.title}
+                </h3>
+                <div className="flex items-center gap-4 mt-3">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Confidence</span>
+                    <span className="text-sm font-bold text-emerald-600">{incident.confidence}%</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Status</span>
+                    <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded mt-0.5">{incident.status}</span>
+                  </div>
+                </div>
               </div>
-              <button className="btn-primary">Initialize Graph Engine</button>
-            </div>
-          </div>
-        </motion.div>
-      </main>
+            ))
+          )}
+        </div>
+      </div>
+      
+      {/* Overlay */}
+      {isHistoryOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40"
+          onClick={() => setIsHistoryOpen(false)}
+        />
+      )}
     </div>
   );
 }

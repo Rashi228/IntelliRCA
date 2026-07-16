@@ -7,14 +7,36 @@ import { motion } from 'framer-motion';
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const validatePassword = (pwd: string) => {
+    const minLength = 8;
+    const hasUpper = /[A-Z]/.test(pwd);
+    const hasNumber = /[0-9]/.test(pwd);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
+    return pwd.length >= minLength && hasUpper && hasNumber && hasSpecial;
+  };
+
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim() && password.trim()) {
-      login(email);
+    setError('');
+
+    if (!validateEmail(email)) return setError('Invalid email format');
+    if (!validatePassword(password)) {
+      return setError('Password must be at least 8 chars, contain 1 uppercase, 1 number, and 1 special character.');
+    }
+
+    try {
+      await login(email, password);
       navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Invalid credentials');
     }
   };
 
@@ -39,6 +61,12 @@ export function LoginPage() {
           </h2>
           <p className="text-slate-500 mt-2 text-sm">Sign in to your IntelliRCA account</p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center font-medium">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>

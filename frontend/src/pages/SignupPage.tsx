@@ -9,14 +9,37 @@ export function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<Role>('SRE');
+  const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const handleSignup = (e: React.FormEvent) => {
+  const validatePassword = (pwd: string) => {
+    const minLength = 8;
+    const hasUpper = /[A-Z]/.test(pwd);
+    const hasNumber = /[0-9]/.test(pwd);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
+    return pwd.length >= minLength && hasUpper && hasNumber && hasSpecial;
+  };
+
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim() && email.trim() && password.trim()) {
-      register(name, email, role);
+    setError('');
+
+    if (!name.trim()) return setError('Full Name is required');
+    if (!validateEmail(email)) return setError('Invalid email format');
+    if (!validatePassword(password)) {
+      return setError('Password must be at least 8 chars, contain 1 uppercase, 1 number, and 1 special character.');
+    }
+
+    try {
+      await register(name, email, role, password);
       navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Failed to create account');
     }
   };
 
@@ -40,6 +63,12 @@ export function SignupPage() {
           </h2>
           <p className="text-slate-500 mt-2 text-sm">Join the IntelliRCA platform</p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center font-medium">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSignup} className="space-y-5">
           <div>

@@ -5,6 +5,7 @@ import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { AuditLogsPage } from './pages/AuditLogsPage';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           {/* Dashboard is protected. We can restrict further by passing allowedRoles={['Admin']} for specific sub-routes if needed */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/audit-logs" element={<AuditLogsPage />} />
           </Route>
           
           {/* Fallback */}

@@ -7,6 +7,14 @@
   --shadow-elegant: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   --shadow-elegant-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
   --shadow-glass: inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+  /* AIOps Light Blue Theme Extensions */
+  --color-aiops-bg: #f0f9ff; /* sky-50 */
+  --color-aiops-panel: #ffffff;
+  --color-aiops-border: #e0f2fe; /* sky-100 */
+  --color-aiops-text: #0f172a; /* slate-900 */
+  --color-aiops-text-muted: #64748b; /* slate-500 */
+  --shadow-panel: 0 4px 6px -1px rgba(14, 165, 233, 0.1), 0 2px 4px -2px rgba(14, 165, 233, 0.1);
 }
 
 @layer base {
@@ -55,12 +63,37 @@
     @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors;
     box-shadow: var(--shadow-elegant);
   }
+
+  /* AIOps Dashboard Utilities */
+  .aiops-panel {
+    @apply rounded-xl border;
+    background-color: rgba(255, 255, 255, 0.8); /* Glassmorphic */
+    backdrop-filter: blur(12px);
+    border-color: var(--color-aiops-border);
+    box-shadow: var(--shadow-panel);
+  }
 }
 
-/* Auth inputs */
 @layer components {
   .input-3d {
     @apply w-full bg-white text-slate-800 px-4 py-3 rounded-xl outline-none border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10;
     transition: all 0.2s ease;
   }
+}
+
+/* React Flow Light Theme Overrides */
+.react-flow__panel {
+  background-color: var(--color-aiops-panel);
+  color: var(--color-aiops-text);
+  border: 1px solid var(--color-aiops-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.react-flow__controls-button {
+  background-color: var(--color-aiops-panel);
+  border-bottom: 1px solid var(--color-aiops-border);
+  fill: var(--color-aiops-text-muted);
+}
+.react-flow__controls-button:hover {
+  background-color: var(--color-aiops-bg);
 }
