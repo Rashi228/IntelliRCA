@@ -2,7 +2,9 @@
 
 @theme {
   --color-brand-blue: #2563eb;
-  --color-brand-indigo: #4f46e5;
+  --color-brand-indigo: #3b82f6;
+  --font-sans: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 
   --shadow-elegant: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   --shadow-elegant-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
@@ -19,7 +21,7 @@
 
 @layer base {
   body {
-    @apply font-sans antialiased min-h-screen text-slate-600 m-0 overflow-x-hidden bg-slate-50;
+    @apply font-mono antialiased min-h-screen text-slate-300 m-0 overflow-x-hidden bg-[#090d16];
   }
 
   /* Subtle mesh background for the entire page */
@@ -35,33 +37,28 @@
 
 @layer utilities {
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400;
   }
 
   .card-elegant {
-    @apply bg-white border border-slate-200/60 rounded-2xl p-8;
-    box-shadow: var(--shadow-elegant);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    @apply bg-[#0d111d] border border-slate-800/85 rounded-none p-6;
+    transition: border-color 0.2s ease;
   }
 
   .card-elegant:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-elegant-hover);
-    @apply border-slate-300;
+    @apply border-slate-700;
   }
 
   .glass-nav {
-    @apply bg-white/80 backdrop-blur-lg border-b border-slate-200/80;
+    @apply bg-[#0d111d]/90 backdrop-blur-md border-b border-slate-800/80;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors;
-    box-shadow: var(--shadow-elegant);
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-none font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors border-none cursor-pointer;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors;
-    box-shadow: var(--shadow-elegant);
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-none font-bold text-slate-300 bg-[#131825] border border-slate-800 hover:bg-[#1a2135] transition-colors cursor-pointer;
   }
 
   /* AIOps Dashboard Utilities */
@@ -76,7 +73,7 @@
 
 @layer components {
   .input-3d {
-    @apply w-full bg-white text-slate-800 px-4 py-3 rounded-xl outline-none border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10;
+    @apply w-full bg-[#090d16] text-slate-200 px-4 py-2.5 rounded-none outline-none border border-slate-800 focus:border-blue-500;
     transition: all 0.2s ease;
   }
 }
