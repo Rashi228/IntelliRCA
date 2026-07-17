@@ -29,8 +29,19 @@ import {
 } from '../services/api';
 
 export function DashboardPage() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { 
+    isStreaming, 
+    events, 
+    rcaReport, 
+    graphNodes, 
+    startStream,
+    historicalIncidents,
+    fetchHistoricalIncidents,
+    loadHistoricalIncident
+  } = useIntelliRCAStream();
+  const { logout, user } = useAuth();
+  const [activeTab, setActiveTab] = React.useState<'topology' | 'semantic'>('semantic');
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   // State Management
   const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -144,7 +155,7 @@ export function DashboardPage() {
             <LogOut className="w-3.5 h-3.5" /> Sign Out
           </button>
         </div>
-      </aside>
+      </header>
 
       {/* Main Panel */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#090d16]">
