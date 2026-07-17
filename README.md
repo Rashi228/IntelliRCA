@@ -26,6 +26,190 @@ By autonomously traversing causal topology, retrieving historical resolution mem
 - **LangChain / LangGraph:** Orchestrates the multi-agent workflow (Coordinator, Topology Analyzer, Memory Agent, Consensus Validator).
 - **WebSockets:** Streams the autonomous agent reasoning and graph updates in real-time to the frontend.
 
+## 🧠 System Architecture Pipeline
+
+```text
+                                    Alert Generated
+                                          │
+                                          ▼
+                                    API Gateway
+                        ├── JWT Authentication
+                        ├── RBAC (Admin/SRE)
+                        ├── Validate Payload
+                        ├── Rate Limiting
+                        ├── Request Logging
+                        └── Publish Alert Event
+                                          │
+                                          ▼
+                               Kafka (alerts.raw)
+                                          │
+                                          ▼
+                              Normalization Worker
+                        ├── Consume Raw Alert
+                        ├── Parse JSON Payload
+                        ├── Standardize Alert Schema
+                        ├── Normalize Severity
+                        ├── Normalize Timestamp
+                        ├── Metadata Enrichment
+                        ├── Service Identification
+                        ├── Host Extraction
+                        ├── Drain3 Template Mining
+                        ├── Remove Dynamic Variables
+                        ├── Validate Required Fields
+                        └── Publish Normalized Alert
+                                          │
+                                          ▼
+                          Kafka (alerts.normalized)
+                                          │
+                                          ▼
+                              Embedding Worker
+                        ├── Consume Normalized Alert
+                        ├── Generate BGE Embedding
+                        ├── Create Semantic Vector
+                        ├── Store Vector in Qdrant
+                        ├── Attach Vector ID
+                        ├── Similarity Index Update
+                        └── Publish Embedded Alert
+                                          │
+                                          ▼
+                           Kafka (alerts.embedded)
+                                          │
+                                          ▼
+                           Correlation & Clustering Worker
+                        ├── Consume Embedded Alert
+                        ├── Time Correlation
+                        ├── Semantic Similarity Search
+                        ├── Topology Dependency Check
+                        ├── Rule Engine Evaluation
+                        ├── HDBSCAN Alert Clustering
+                        ├── Duplicate Detection
+                        ├── Noise Reduction
+                        ├── Incident Boundary Detection
+                        ├── Root Service Identification
+                        ├── Blast Radius Calculation
+                        ├── Incident Confidence Score
+                        └── Publish Active Incident
+                                          │
+                                          ▼
+                           Kafka (incidents.active)
+                                          │
+                                          ▼
+                           Knowledge Graph Worker
+                        ├── Consume Active Incident
+                        ├── Create Incident Node
+                        ├── Create Service Nodes
+                        ├── Create Alert Nodes
+                        ├── Create Infrastructure Nodes
+                        ├── Build Dependency Edges
+                        ├── Link Related Services
+                        ├── Link Affected Resources
+                        ├── Update Existing Graph
+                        ├── Persist Graph in Neo4j
+                        └── Publish Graph Ready Event
+                                          │
+                                          ▼
+                             Kafka (graph.ready)
+                                          │
+                                          ▼
+                                Memory Worker
+                        ├── Consume Graph Event
+                        ├── Retrieve Similar Incidents
+                        ├── Search Qdrant Memory
+                        ├── Search Neo4j History
+                        ├── Compare Incident Patterns
+                        ├── Compare Root Causes
+                        ├── Compare Resolution History
+                        ├── Retrieve Past Fixes
+                        ├── Rank Historical Matches
+                        ├── Build Memory Context
+                        └── Publish Memory Context
+                                          │
+                                          ▼
+                            Kafka (memory.ready)
+                                          │
+                                          ▼
+                           Multi-Agent Coordinator
+                        ├── Consume Memory Context
+                        ├── Spawn Investigation Agents
+                        ├── Assign Tasks
+                        ├── Collect Agent Results
+                        ├── Resolve Conflicts
+                        ├── Merge Evidence
+                        └── Send to Consensus Engine
+                        │
+        ┌───────────────┼────────────────┬────────────────┬────────────────┐
+        ▼               ▼                ▼                ▼                ▼
+  Graph Agent     Memory Agent      Logs Agent     Topology Agent   Business Agent
+        │               │                │                │                │
+        ├── Query Neo4j ├── Search Past  ├── Fetch Logs   ├── Check        ├── SLA Impact
+        ├── Find Paths  ├── Compare RCA  ├── Error Trace  │ Dependencies   ├── Revenue Impact
+        ├── Root Chain  ├── Resolution   ├── Exceptions   ├── Service Map  ├── User Impact
+        ├── Blast Radius├── Similarity   ├── Stack Trace  ├── Root Node    ├── Priority
+        └── Evidence    └── Evidence     └── Evidence     └── Evidence     └── Evidence
+                               │
+                               ▼
+                          Consensus Worker
+                        ├── Collect All Evidence
+                        ├── Compare Agent Outputs
+                        ├── Validate Agreement
+                        ├── Conflict Resolution
+                        ├── Confidence Calculation
+                        ├── Final Root Cause Selection
+                        ├── Risk Score Generation
+                        └── Publish RCA Result
+                               │
+                               ▼
+                           Kafka (rca.ready)
+                               │
+                               ▼
+                            RCA Worker
+                        ├── Generate RCA Report
+                        ├── Root Cause Summary
+                        ├── Timeline Generation
+                        ├── Evidence Summary
+                        ├── Blast Radius Summary
+                        ├── Recommended Actions
+                        ├── Recovery Steps
+                        ├── Confidence Report
+                        ├── Markdown/PDF Report
+                        └── Publish Final Report
+                               │
+                               ▼
+                        Kafka (dashboard.events)
+                               │
+                               ▼
+                        Dashboard Worker
+                        ├── Stream via WebSocket
+                        ├── Update Timeline
+                        ├── Update Semantic Graph
+                        ├── Update Knowledge Graph
+                        ├── Update Causal Flow
+                        ├── Update Blast Radius
+                        ├── Update Agent Reasoning
+                        ├── Update Business Impact
+                        ├── Update Confidence Score
+                        └── Display Final RCA
+                               │
+                               ▼
+                         Engineer Resolves Issue
+                               │
+                               ▼
+                        Kafka (incident.closed)
+                               │
+                               ▼
+                      Continuous Learning Worker
+                        ├── Save Final Incident
+                        ├── Save Final RCA
+                        ├── Save Resolution Steps
+                        ├── Save Human Feedback
+                        ├── Update Memory Store
+                        ├── Update Neo4j Relations
+                        ├── Update Qdrant Embeddings
+                        ├── Improve Similarity Index
+                        ├── Improve Future Retrieval
+                        └── Incident Learning Complete
+```
+
 ---
 
 ## 🔑 Role-Based Access Control (RBAC)
