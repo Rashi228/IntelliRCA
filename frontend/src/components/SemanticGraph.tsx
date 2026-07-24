@@ -82,8 +82,33 @@ const MOCK_DATA = (() => {
   return { nodes, links };
 })();
 
+// Helper to filter graph dynamically based on active discoveries
+const getActiveGraphData = (discoveredNodes: string[]) => {
+  if (discoveredNodes.length === 0) {
+    // Show a completely empty graph when nothing is happening
+    return { nodes: [], links: [] };
+  }
+  
+  // Show all nodes but highlight discovered ones (or filter to just the blast radius)
+  // To simulate "live graph building", we only show nodes related to the discovered ones
+  const activeNodes = MOCK_DATA.nodes.filter(n => 
+    discoveredNodes.includes(n.id) || 
+    n.type === 'service' || 
+    n.type === 'database' // Show infra, but hide irrelevant alerts/incidents
+  );
+  
+  const activeNodeIds = activeNodes.map(n => n.id);
+  const activeLinks = MOCK_DATA.links.filter(l => 
+    activeNodeIds.includes(l.source) && activeNodeIds.includes(l.target)
+  );
+
+  return { nodes: activeNodes, links: activeLinks };
+};
+
 export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
-  const fgRef = useRef<any>();
+  const graphData = useMemo(() => getActiveGraphData(discoveredNodes), [discoveredNodes]);
+
+  const fgRef = useRef<any>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -104,7 +129,7 @@ export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
   // Sync discovered nodes zoom
   useEffect(() => {
     if (discoveredNodes.length > 0 && fgRef.current) {
-      const discoveredGraphNodes = MOCK_DATA.nodes.filter(n => discoveredNodes.includes(n.id));
+      const discoveredGraphNodes = graphData.nodes.filter(n => discoveredNodes.includes(n.id));
       if (discoveredGraphNodes.length > 0) {
         // Zoom to fit the discovered nodes
         const xList = discoveredGraphNodes.map(n => (n as any).x || 0);
@@ -232,7 +257,7 @@ export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
             />
           </div>
           <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md border border-indigo-200 font-semibold">
-            {MOCK_DATA.nodes.length} Entities
+            {graphData.nodes.length} Entities
           </span>
         </div>
       </div>
@@ -254,7 +279,7 @@ export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
             ref={fgRef}
             width={dimensions.width}
             height={dimensions.height}
-            graphData={MOCK_DATA}
+            graphData={graphData}
             nodeCanvasObject={paintNode}
             nodeCanvasObjectMode={() => 'replace'}
             linkCanvasObject={paintLink}
@@ -293,12 +318,12 @@ export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
               <div>
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Dependencies</span>
                 <div className="text-xs text-slate-600 flex flex-col gap-1">
-                  {MOCK_DATA.links.filter(l => l.source === selectedNode || l.target === selectedNode).slice(0, 5).map((l: any, idx) => (
+                  {graphData.links.filter((l: any) => l.source === selectedNode || l.target === selectedNode || l.source?.id === selectedNode.id || l.target?.id === selectedNode.id || l.source === selectedNode.id || l.target === selectedNode.id).slice(0, 5).map((l: any, idx) => (
                     <div key={idx} className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded">
-                      <span className="truncate w-full font-mono">{l.source.id === selectedNode.id ? l.target.id : l.source.id}</span>
+                      <span className="truncate w-full font-mono">{l.source?.id === selectedNode.id || l.source === selectedNode.id ? (l.target?.id || l.target) : (l.source?.id || l.source)}</span>
                     </div>
                   ))}
-                  {MOCK_DATA.links.filter(l => l.source === selectedNode || l.target === selectedNode).length > 5 && (
+                  {graphData.links.filter((l: any) => l.source === selectedNode || l.target === selectedNode || l.source?.id === selectedNode.id || l.target?.id === selectedNode.id || l.source === selectedNode.id || l.target === selectedNode.id).length > 5 && (
                     <span className="text-slate-400 italic mt-1">+ more connections</span>
                   )}
                 </div>
