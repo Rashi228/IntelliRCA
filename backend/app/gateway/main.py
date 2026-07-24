@@ -5,8 +5,10 @@ import httpx
 import websockets
 import os
 import json
+import asyncio
 from .dependencies import verify_jwt, require_admin, verify_ws_jwt
 from fastapi import Depends
+from aiokafka import AIOKafkaConsumer
 
 logger = structlog.get_logger()
 
@@ -20,12 +22,44 @@ app = FastAPI(
 INGESTION_SERVICE_URL = os.getenv("INGESTION_SERVICE_URL", "http://intellirca-api:8000")
 RCA_SERVICE_WS_URL = os.getenv("RCA_SERVICE_WS_URL", "ws://intellirca-rca-api:8085")
 KG_SERVICE_URL = os.getenv("KG_SERVICE_URL", "http://intellirca-kg-api:8084")
+KAFKA_BROKER_URL = os.getenv("KAFKA_BROKER_URL", "kafka:9092")
+KAFKA_ACTIVE_INCIDENTS_TOPIC = os.getenv("KAFKA_ACTIVE_INCIDENTS_TOPIC", "incidents.active")
 
 http_client = httpx.AsyncClient()
+
+# Store the latest auto-generated incident for the frontend to poll
+LATEST_INCIDENT = None
+
+async def consume_incidents():
+    global LATEST_INCIDENT
+    consumer = AIOKafkaConsumer(
+        KAFKA_ACTIVE_INCIDENTS_TOPIC,
+        bootstrap_servers=KAFKA_BROKER_URL,
+        group_id="gateway_polling_group",
+        value_deserializer=lambda v: json.loads(v.decode('utf-8'))
+    )
+    try:
+        await consumer.start()
+        logger.info("gateway_incident_consumer_started")
+        async for msg in consumer:
+            LATEST_INCIDENT = msg.value
+            logger.info("gateway_cached_new_incident", incident_id=msg.value.get("incident_id"))
+    except Exception as e:
+        logger.error("gateway_incident_consumer_failed", error=str(e))
+    finally:
+        await consumer.stop()
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(consume_incidents())
 
 @app.on_event("shutdown")
 async def shutdown_event():
     await http_client.aclose()
+
+@app.get("/api/v1/incidents/latest")
+async def get_latest_incident():
+    return {"status": "success", "incident": LATEST_INCIDENT}
 
 @app.get("/health")
 async def health_check():

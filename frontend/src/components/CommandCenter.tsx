@@ -13,29 +13,40 @@ interface CommandCenterProps {
 export function CommandCenter({ onTrigger, isStreaming, rcaReport }: CommandCenterProps) {
   const { user } = useAuth();
   const [incidentId, setIncidentId] = useState('INC-' + Math.floor(1000 + Math.random() * 9000));
+  const [lastPolledIncident, setLastPolledIncident] = useState<string | null>(null);
 
-  const handleSimulate = () => {
-    logAuditAction({
-      action: 'TRIGGER_SIMULATION',
-      resource_type: 'INCIDENT',
-      resource_id: incidentId,
-      status: 'SUCCESS'
-    });
-
-    const payload = {
-      incident_id: incidentId,
-      raw_incident_data: {
-        title: "Database CPU Spike & API Latency",
-        description: "The postgres-cluster is sitting at 96% CPU, which is causing the frontend user-login API to time out.",
-        alerts: ["sim-cpu-001", "sim-latency-005"],
-        time_window: { start: new Date().toISOString() },
-        affected_services: ["frontend", "user-login-api", "postgres-cluster"]
+  // Poll Gateway for new live incidents automatically
+  React.useEffect(() => {
+    if (isStreaming) return; // Don't poll while an RCA is actively streaming
+    
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch('http://localhost:8090/api/v1/incidents/latest');
+        const data = await res.json();
+        if (data.incident && data.incident.incident_id !== lastPolledIncident) {
+          // New incident detected!
+          setLastPolledIncident(data.incident.incident_id);
+          
+          logAuditAction({
+            action: 'LIVE_INCIDENT_DETECTED',
+            resource_type: 'INCIDENT',
+            resource_id: data.incident.incident_id,
+            status: 'SUCCESS'
+          });
+          
+          const payload = {
+            incident_id: data.incident.incident_id,
+            raw_incident_data: data.incident
+          };
+          onTrigger(payload);
+        }
+      } catch (err) {
+        // Silently ignore polling errors
       }
-    };
-    onTrigger(payload);
-    // Gen new ID for next time
-    setIncidentId('INC-' + Math.floor(1000 + Math.random() * 9000));
-  };
+    }, 3000);
+    
+    return () => clearInterval(pollInterval);
+  }, [isStreaming, lastPolledIncident, onTrigger]);
 
   return (
     <div className="flex flex-col gap-4">

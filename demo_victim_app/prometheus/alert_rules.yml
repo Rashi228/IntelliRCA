@@ -2,7 +2,7 @@ groups:
   - name: chaos_alerts
     rules:
       - alert: DatabaseConnectionLost
-        expr: rate(http_request_duration_seconds_count{code="503"}[10s]) > 0
+        expr: rate(http_request_duration_seconds_count{code="503"}[30s]) > 0
         for: 5s
         labels:
           severity: critical
@@ -13,7 +13,7 @@ groups:
           description: "Service is returning 503 Service Unavailable, indicating database connection failure."
           
       - alert: APITimeoutSpike
-        expr: rate(http_request_duration_seconds_count{code="500"}[10s]) > 0
+        expr: rate(http_request_duration_seconds_count{code="500"}[30s]) > 0
         for: 5s
         labels:
           severity: high
@@ -24,7 +24,7 @@ groups:
           description: "High rate of 500 Internal Server Errors detected on the API endpoints."
 
       - alert: NodeCPUSpike
-        expr: rate(process_cpu_user_seconds_total[10s]) > 0.5
+        expr: rate(process_cpu_user_seconds_total[30s]) > 0.5
         for: 10s
         labels:
           severity: critical

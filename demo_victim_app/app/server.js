@@ -182,4 +182,9 @@ app.get('/reset', (req, res) => {
 
 app.listen(port, () => {
   console.log(`Victim app listening on port ${port}`);
+  
+  // Simulate continuous background user traffic (10 requests per second)
+  setInterval(() => {
+    fetch(`http://localhost:${port}/`).catch(() => {});
+  }, 100);
 });

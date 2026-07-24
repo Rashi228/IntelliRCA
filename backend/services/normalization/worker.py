@@ -24,7 +24,7 @@ class NormalizationConsumer:
         self.consumer = AIOKafkaConsumer(
             settings.KAFKA_RAW_ALERTS_TOPIC,
             bootstrap_servers=settings.KAFKA_BROKER_URL,
-            group_id="normalization_group",
+            group_id="normalization_group_v2",
             value_deserializer=lambda v: json.loads(v.decode('utf-8'))
         )
         self.producer = AIOKafkaProducer(

@@ -24,7 +24,7 @@ class KnowledgeGraphConsumer:
         self.consumer = AIOKafkaConsumer(
             settings.KAFKA_ACTIVE_INCIDENTS_TOPIC,
             bootstrap_servers=settings.KAFKA_BROKER_URL,
-            group_id="kg_group",
+            group_id="kg_group_v2",
             value_deserializer=lambda v: json.loads(v.decode('utf-8'))
         )
         await self.consumer.start()

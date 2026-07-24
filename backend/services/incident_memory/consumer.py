@@ -22,7 +22,7 @@ class IncidentMemoryConsumer:
         self.consumer = AIOKafkaConsumer(
             settings.KAFKA_RESOLVED_INCIDENTS_TOPIC,
             bootstrap_servers=settings.KAFKA_BROKER_URL,
-            group_id="memory_group",
+            group_id="memory_group_v2",
             value_deserializer=lambda v: json.loads(v.decode('utf-8'))
         )
         await self.consumer.start()

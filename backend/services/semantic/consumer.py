@@ -25,7 +25,7 @@ class SemanticConsumer:
         self.consumer = AIOKafkaConsumer(
             settings.KAFKA_NORMALIZED_ALERTS_TOPIC,
             bootstrap_servers=settings.KAFKA_BROKER_URL,
-            group_id="semantic_group",
+            group_id="semantic_group_v2",
             value_deserializer=lambda v: json.loads(v.decode('utf-8'))
         )
         await self.consumer.start()
