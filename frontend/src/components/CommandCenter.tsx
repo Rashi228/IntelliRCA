@@ -50,14 +50,15 @@ export function CommandCenter({ onTrigger, isStreaming, rcaReport }: CommandCent
         </div>
         
         <p className="text-sm text-slate-500">
-          Simulate a real-time infrastructure incident to observe IntelliRCA's LangGraph agents autonomously investigating and resolving the issue.
+          Listening for live Prometheus webhooks. When an anomaly is detected on the external network, IntelliRCA will autonomously investigate and resolve the issue here.
         </p>
 
-        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100 mt-2">
-          <span className="text-sm text-slate-600 font-mono">Target ID:</span>
-          <span className="text-sm text-blue-700 font-mono font-bold">{incidentId}</span>
+        <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg border border-emerald-100 mt-2">
+          <span className="text-sm text-emerald-700 font-mono flex items-center gap-2">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            System Armed & Ready
+          </span>
         </div>
-
         {user?.role === 'SRE' ? (
           <div className="mt-2 p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center gap-2 text-slate-500 text-sm">
             <Lock size={16} />
