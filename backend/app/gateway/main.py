@@ -50,6 +50,50 @@ async def proxy_ingest_alert(request: Request, user: dict = Depends(require_admi
         logger.error("gateway_proxy_failed", target="ingestion_service", error=str(e))
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Ingestion service is unavailable.")
 
+# Ingest Prometheus Alertmanager Webhooks (Public Endpoint for external monitoring)
+@app.post("/api/v1/alerts/prometheus_webhook")
+async def prometheus_webhook(request: Request):
+    try:
+        body = await request.json()
+        alerts = body.get("alerts", [])
+        
+        processed_count = 0
+        for alert in alerts:
+            # Only process 'firing' alerts (ignore 'resolved' for now)
+            if alert.get("status") != "firing":
+                continue
+                
+            labels = alert.get("labels", {})
+            annotations = alert.get("annotations", {})
+            
+            # Map Prometheus Alert to IntelliRCA StandardAlert
+            standard_alert = {
+                "source": "Prometheus Alertmanager",
+                "severity": labels.get("severity", "CRITICAL").upper(),
+                "title": annotations.get("title", labels.get("alertname", "Unknown Prometheus Alert")),
+                "description": annotations.get("description", "No description provided."),
+                "metadata": {
+                    "service": labels.get("service", "unknown"),
+                    "component": labels.get("component", "unknown"),
+                    "prometheus_fingerprint": alert.get("fingerprint", "")
+                }
+            }
+            
+            # Forward to internal ingestion service
+            url = f"{INGESTION_SERVICE_URL}/api/v1/alerts/ingest"
+            await http_client.post(
+                url, 
+                json=standard_alert, 
+                headers={"Content-Type": "application/json"}
+            )
+            processed_count += 1
+            
+        logger.info("prometheus_webhook_processed", count=processed_count)
+        return {"status": "success", "message": f"Processed {processed_count} alerts"}
+    except Exception as e:
+        logger.error("prometheus_webhook_failed", error=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
 # Proxy WebSocket to RCA Engine
 @app.websocket("/ws/rca/{incident_id}")
 async def websocket_proxy(websocket: WebSocket, incident_id: str):

@@ -1,0 +1,46 @@
+groups:
+  - name: chaos_alerts
+    rules:
+      - alert: DatabaseConnectionLost
+        expr: rate(http_request_duration_seconds_count{code="503"}[10s]) > 0
+        for: 5s
+        labels:
+          severity: critical
+          service: user-login-api
+          component: postgres-cluster
+        annotations:
+          title: "Database Connection Lost"
+          description: "Service is returning 503 Service Unavailable, indicating database connection failure."
+          
+      - alert: APITimeoutSpike
+        expr: rate(http_request_duration_seconds_count{code="500"}[10s]) > 0
+        for: 5s
+        labels:
+          severity: high
+          service: user-login-api
+          component: web-server
+        annotations:
+          title: "API Internal Server Errors"
+          description: "High rate of 500 Internal Server Errors detected on the API endpoints."
+
+      - alert: NodeCPUSpike
+        expr: rate(process_cpu_user_seconds_total[10s]) > 0.5
+        for: 10s
+        labels:
+          severity: critical
+          service: user-login-api
+          component: compute-node
+        annotations:
+          title: "Critical CPU Spike Detected"
+          description: "Node.js event loop CPU utilization is unusually high, indicating potential infinite loop or heavy load."
+
+      - alert: MemoryLeakDetected
+        expr: process_resident_memory_bytes > 100000000
+        for: 10s
+        labels:
+          severity: high
+          service: user-login-api
+          component: memory-heap
+        annotations:
+          title: "Memory Leak Detected"
+          description: "Process memory has exceeded 100MB and is growing rapidly."

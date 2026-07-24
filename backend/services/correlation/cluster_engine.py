@@ -11,6 +11,11 @@ class ClusterEngine:
         self.min_cluster_size = min_cluster_size
 
     def discover_incidents(self, alerts: list, distance_matrix: np.ndarray) -> list:
+        if len(alerts) == 1:
+            logger.info("single_alert_incident_bypassing_clustering")
+            # For the demo, instantly promote a single alert to an incident
+            return [self._generate_structured_incident(alerts, distance_matrix, np.array([0]), 0)]
+
         if len(alerts) < self.min_cluster_size:
             logger.info("not_enough_alerts_to_cluster", count=len(alerts))
             return []

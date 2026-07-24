@@ -1,0 +1,17 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname']
+  group_wait: 2s
+  group_interval: 5s
+  repeat_interval: 1h
+  receiver: 'intellirca-webhook'
+
+receivers:
+  - name: 'intellirca-webhook'
+    webhook_configs:
+      # For testing on the same machine, host.docker.internal points to your host machine's localhost.
+      # FOR THE PITCH: Change this to Laptop 1's actual Wi-Fi IP address! (e.g. http://192.168.1.45:8000/...)
+      - url: 'http://host.docker.internal:8000/api/v1/alerts/prometheus_webhook'
+        send_resolved: true

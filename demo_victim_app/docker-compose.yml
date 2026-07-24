@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  victim_app:
+    build: ./app
+    container_name: demo_victim_app
+    ports:
+      - "3000:3000"
+    networks:
+      - monitor_net
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: demo_prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitor_net
+    depends_on:
+      - victim_app
+
+  alertmanager:
+    image: prom/alertmanager:v0.25.0
+    container_name: demo_alertmanager
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    ports:
+      - "9093:9093"
+    networks:
+      - monitor_net
+    # Required for host.docker.internal to work on Linux/Windows for the webhook
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  monitor_net:
+    driver: bridge

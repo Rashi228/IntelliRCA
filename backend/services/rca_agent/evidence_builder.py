@@ -21,21 +21,12 @@ class EvidenceBuilder:
             # We assume depth=2 is sufficient for blast radius context
             subgraph = graph_query.get_incident_subgraph(incident_id, depth=2)
             
-            # Presentation Auto-Seeder: If the Neo4j DB is empty (0 nodes), inject a realistic graph
-            if not subgraph.get("nodes"):
-                subgraph = {
-                    "nodes": {
-                        "101": {"labels": ["Service"], "properties": {"name": "postgres-cluster", "type": "database", "status": "critical"}},
-                        "102": {"labels": ["Service"], "properties": {"name": "user-login-api", "type": "api", "status": "degraded"}},
-                        "103": {"labels": ["Service"], "properties": {"name": "frontend", "type": "web", "status": "degraded"}},
-                        "104": {"labels": ["Alert"], "properties": {"name": "sim-cpu-001", "severity": "high"}},
-                    },
-                    "edges": [
-                        {"type": "DEPENDS_ON", "source": "102", "target": "101", "properties": {}},
-                        {"type": "DEPENDS_ON", "source": "103", "target": "102", "properties": {}},
-                        {"type": "TRIGGERS", "source": "101", "target": "104", "properties": {}}
-                    ]
-                }
+            # Presentation Auto-Seeder Disabled for Live Prometheus Demo
+            # if not subgraph.get("nodes"):
+            #     subgraph = {
+            #         "nodes": { ... },
+            #         "edges": [ ... ]
+            #     }
         except Exception as e:
             logger.error("evidence_builder_kg_failed", error=str(e))
             subgraph = {"nodes": {}, "edges": []}

@@ -64,23 +64,7 @@ export function CommandCenter({ onTrigger, isStreaming, rcaReport }: CommandCent
             <span>Simulations restricted to Admin role</span>
           </div>
         ) : (
-          <button 
-            onClick={handleSimulate}
-            disabled={isStreaming}
-            className={`btn-primary mt-2 flex items-center justify-center gap-2 w-full ${isStreaming ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {isStreaming ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Analyzing...</span>
-              </div>
-            ) : (
-              <>
-                <Play size={18} />
-                <span>Trigger Simulation</span>
-              </>
-            )}
-          </button>
+          null
         )}
       </div>
 
