@@ -26,7 +26,7 @@ class MemoryQuery:
         logger.info("searching_memories", query=query, service=service, severity=severity)
         
         # Embed the query
-        query_vector = self.embedding_engine.generate_embedding(query)
+        query_vector = self.embedding_engine.embed_alert(query)
         
         # Build Filter if metadata is provided
         must_conditions = []

@@ -52,8 +52,14 @@ class GraphQueryService:
                             "properties": dict(rel.items())
                         })
                 
-                # Remove duplicate edges
-                unique_edges = [dict(t) for t in {tuple(d.items()) for d in edges}]
+                # Remove duplicate edges based on hashable (source, target, type) tuples
+                unique_edges = []
+                seen_edges = set()
+                for edge in edges:
+                    key = (edge["source"], edge["target"], edge["type"])
+                    if key not in seen_edges:
+                        seen_edges.add(key)
+                        unique_edges.append(edge)
 
                 logger.info("subgraph_retrieved", incident_id=incident_id, nodes_count=len(nodes), edges_count=len(unique_edges))
                 return {

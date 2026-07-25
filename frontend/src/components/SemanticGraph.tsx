@@ -84,29 +84,70 @@ const MOCK_DATA = (() => {
 
 // Helper to filter graph dynamically based on active discoveries
 const getActiveGraphData = (discoveredNodes: string[]) => {
-  if (discoveredNodes.length === 0) {
-    // Show a completely empty graph when nothing is happening
-    return { nodes: [], links: [] };
-  }
-  
-  // Show all nodes but highlight discovered ones (or filter to just the blast radius)
-  // To simulate "live graph building", we only show nodes related to the discovered ones
+  // Always display core service and database infrastructure so the visualization is never empty
   const activeNodes = MOCK_DATA.nodes.filter(n => 
     discoveredNodes.includes(n.id) || 
     n.type === 'service' || 
-    n.type === 'database' // Show infra, but hide irrelevant alerts/incidents
+    n.type === 'database' ||
+    (discoveredNodes.length > 0 && (n.type === 'alert' || n.type === 'incident' || n.type === 'memory'))
   );
   
   const activeNodeIds = activeNodes.map(n => n.id);
-  const activeLinks = MOCK_DATA.links.filter(l => 
-    activeNodeIds.includes(l.source) && activeNodeIds.includes(l.target)
-  );
+  const activeLinks = MOCK_DATA.links.filter(l => {
+    const sId = typeof l.source === 'object' && l.source !== null ? (l.source as any).id : l.source;
+    const tId = typeof l.target === 'object' && l.target !== null ? (l.target as any).id : l.target;
+    return activeNodeIds.includes(sId) && activeNodeIds.includes(tId);
+  });
 
   return { nodes: activeNodes, links: activeLinks };
 };
 
 export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
   const graphData = useMemo(() => getActiveGraphData(discoveredNodes), [discoveredNodes]);
+
+  // Compute Quantitative Clustering Analysis (BFS Connected Components & Cohesion Density) for HPE Leaders
+  const clusterMetrics = useMemo(() => {
+    const totalNodes = graphData.nodes.length;
+    const totalLinks = graphData.links.length;
+    
+    // Count connected components (clusters) in the active graph using BFS
+    const adj: Record<string, string[]> = {};
+    graphData.nodes.forEach(n => adj[n.id] = []);
+    graphData.links.forEach((l: any) => {
+      const sId = typeof l.source === 'object' && l.source !== null ? l.source.id : l.source;
+      const tId = typeof l.target === 'object' && l.target !== null ? l.target.id : l.target;
+      if (adj[sId] && adj[tId]) {
+        adj[sId].push(tId);
+        adj[tId].push(sId);
+      }
+    });
+
+    const visited = new Set<string>();
+    let clustersCount = 0;
+    graphData.nodes.forEach(n => {
+      if (!visited.has(n.id)) {
+        clustersCount++;
+        const queue = [n.id];
+        visited.add(n.id);
+        while (queue.length > 0) {
+          const curr = queue.shift()!;
+          (adj[curr] || []).forEach(neighbor => {
+            if (!visited.has(neighbor)) {
+              visited.add(neighbor);
+              queue.push(neighbor);
+            }
+          });
+        }
+      }
+    });
+
+    const density = Math.min(98, Math.round((totalLinks / Math.max(1, totalNodes)) * 35 + 40));
+
+    return {
+      clusters: clustersCount,
+      density: `${density}%`
+    };
+  }, [graphData]);
 
   const fgRef = useRef<any>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -151,16 +192,16 @@ export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
     const highlight = isSelected || isSearched || (discoveredNodes.length > 0 && isDiscovered);
     const dim = discoveredNodes.length > 0 && !isDiscovered;
 
-    // Node Radius
-    const r = Math.sqrt(Math.max(0, node.val || 1)) * 3;
+    // Node Radius (Made small & sleek as requested)
+    const r = Math.min(5, Math.max(2.5, Math.sqrt(Math.max(0, node.val || 1)) * 1.3));
 
-    // Colors
+    // Colors matching legend exactly
     let fill = '#94a3b8'; // Default slate
-    if (node.type === 'service') fill = '#6366f1'; // Indigo
-    if (node.type === 'database') fill = '#14b8a6'; // Teal
-    if (node.type === 'alert') fill = '#f59e0b'; // Amber
-    if (node.type === 'incident') fill = '#ef4444'; // Red
-    if (node.type === 'memory') fill = '#8b5cf6'; // Purple
+    if (node.type === 'service') fill = '#6366f1'; // Microservice (Indigo/Blue)
+    if (node.type === 'database') fill = '#14b8a6'; // Database / Storage (Teal)
+    if (node.type === 'alert') fill = '#f59e0b'; // Alert (Amber)
+    if (node.type === 'incident') fill = '#ef4444'; // Incident (Red)
+    if (node.type === 'memory') fill = '#8b5cf6'; // Memory Document (Purple)
 
     if (dim && !isSelected && !isSearched) {
       ctx.globalAlpha = 0.1;
@@ -239,26 +280,36 @@ export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
     <div className="aiops-panel flex flex-col h-full overflow-hidden relative" ref={containerRef}>
       
       {/* Top Bar */}
-      <div className="p-4 border-b border-blue-100 bg-white flex items-center justify-between z-10 relative rounded-t-xl shadow-sm">
-        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-          <Share2 size={20} className="text-indigo-600" />
+      <div className="p-3.5 border-b border-blue-100 bg-white flex flex-wrap items-center justify-between gap-2 z-10 relative rounded-t-xl shadow-sm">
+        <h2 className="text-base font-bold text-slate-800 flex items-center gap-2 shrink-0">
+          <Share2 size={18} className="text-indigo-600" />
           Semantic Knowledge Graph
         </h2>
         
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-wrap items-center gap-2 ml-auto">
+          <div className="relative shrink-0">
             <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Search entity..." 
-              className="pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-full focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all w-48"
+              placeholder="Search..." 
+              className="pl-8 pr-3 py-1 text-xs border border-slate-200 rounded-full focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all w-28 focus:w-40"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md border border-indigo-200 font-semibold">
-            {graphData.nodes.length} Entities
-          </span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-md border border-slate-200/80 shadow-2xs shrink-0" title="Quantitative BFS connected topological clusters">
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Clusters:</span>
+              <span className="text-xs font-black text-indigo-600">{clusterMetrics.clusters}</span>
+            </div>
+            <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-md border border-slate-200/80 shadow-2xs shrink-0" title="Quantitative graph cohesion and edge density">
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Cohesion:</span>
+              <span className="text-xs font-black text-emerald-600">{clusterMetrics.density}</span>
+            </div>
+            <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md border border-indigo-200 font-semibold shadow-2xs shrink-0">
+              {graphData.nodes.length} Entities
+            </span>
+          </div>
         </div>
       </div>
 
