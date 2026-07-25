@@ -49,12 +49,6 @@ class EvidenceBuilder:
             historical_incidents = []
             if res.status_code == 200:
                 historical_incidents = res.json().get("results", [])
-            
-            if not historical_incidents:
-                # Baseline memory fallback if Qdrant is completely empty on brand new setup
-                historical_incidents = [
-                    {"memory_id": "MEM-BASE", "incident_id": "INC-7482", "root_cause": "Postgres CPU Exhaustion and connection pool saturation.", "recommended_remediation": "Scaled up database instances and optimized query pools.", "similarity_score": 0.85}
-                ]
         except Exception as e:
             logger.error("evidence_builder_memory_failed", error=str(e))
             historical_incidents = []
