@@ -8,6 +8,7 @@ import json
 import asyncio
 from .dependencies import verify_jwt, require_admin, verify_ws_jwt
 from fastapi import Depends
+from fastapi.middleware.cors import CORSMiddleware
 from aiokafka import AIOKafkaConsumer
 
 logger = structlog.get_logger()
@@ -16,6 +17,14 @@ app = FastAPI(
     title="IntelliRCA API Gateway",
     description="Module 2.13: Unified entry point for all frontend and external requests.",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Allow localhost:5173 and all dev origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Target URLs for internal microservices

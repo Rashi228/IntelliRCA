@@ -42,6 +42,10 @@ class ClusterEngine:
                 incident = self._generate_structured_incident(cluster_alerts, distance_matrix, labels, label)
                 incidents.append(incident)
                 
+            if not incidents and len(alerts) >= 1:
+                logger.info("hdbscan_noise_fallback_grouping", count=len(alerts))
+                incidents = [self._generate_structured_incident(alerts, distance_matrix, np.zeros(len(alerts)), 0)]
+                
             logger.info("incidents_discovered", count=len(incidents))
             return incidents
 

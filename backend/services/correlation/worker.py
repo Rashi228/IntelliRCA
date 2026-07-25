@@ -12,13 +12,13 @@ app = FastAPI(title="Correlation Engine Worker")
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
 
-correlation_engine = CorrelationConsumer(window_interval_seconds=30)
+correlation_engine = CorrelationConsumer(window_interval_seconds=8)
 
 @app.on_event("startup")
 async def startup_event():
     logger.info("correlation_worker_api_started")
-    # Start the Kafka consumer and the clustering loop in the background
-    asyncio.create_task(correlation_engine.start())
+    # Await Kafka consumer startup before starting loops to prevent race conditions
+    await correlation_engine.start()
     asyncio.create_task(correlation_engine.consume_loop())
     asyncio.create_task(correlation_engine.correlation_cycle())
 

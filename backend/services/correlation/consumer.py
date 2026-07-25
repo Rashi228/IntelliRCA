@@ -19,7 +19,7 @@ CORRELATION_CYCLES = Counter('correlation_cycles_total', 'Total clustering cycle
 CYCLE_LATENCY = Histogram('correlation_cycle_latency_seconds', 'Latency of a complete correlation cycle')
 
 class CorrelationConsumer:
-    def __init__(self, window_interval_seconds=30):
+    def __init__(self, window_interval_seconds=8):
         self.consumer = None
         self.producer = None
         self.buffer = []
@@ -55,6 +55,7 @@ class CorrelationConsumer:
         try:
             async for msg in self.consumer:
                 alert = msg.value
+                logger.info("received_normalized_alert", alert_id=alert.get("id"))
                 self.buffer.append(alert)
                 BUFFER_SIZE.set(len(self.buffer))
         except Exception as e:
@@ -80,8 +81,8 @@ class CorrelationConsumer:
         while self._running:
             await asyncio.sleep(self.window_interval)
             
-            if len(self.buffer) < 2:
-                continue # Need at least 2 alerts to correlate
+            if len(self.buffer) < 1:
+                continue # Need at least 1 alert to correlate in demo mode
                 
             start_time = time.time()
             CORRELATION_CYCLES.inc()
