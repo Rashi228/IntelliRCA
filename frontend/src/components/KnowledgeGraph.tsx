@@ -88,11 +88,8 @@ export function KnowledgeGraph({ discoveredNodes }: KnowledgeGraphProps) {
 
   return (
     <div className="aiops-panel flex flex-col h-full overflow-hidden">
-      <div className="p-4 border-b border-blue-100 bg-white flex items-center justify-between z-10 relative rounded-t-xl">
-        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-          <Network size={20} className="text-teal-600" />
-          Dynamic Knowledge Graph
-        </h2>
+      <div className="p-2.5 px-3.5 border-b border-slate-200/80 bg-white flex items-center justify-between z-10 relative shadow-2xs shrink-0">
+        <span className="text-xs font-bold text-slate-700">Topological Causal Dependencies:</span>
         <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md border border-blue-200 font-semibold">
           Blast Radius: {discoveredNodes.length > 0 ? 3 : 0} Nodes
         </span>

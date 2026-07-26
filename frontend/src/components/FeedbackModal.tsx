@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { submitFeedback } from '../services/api';
 import { X, Send, Award, CheckCircle } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface FeedbackModalProps {
   incidentId: string;
   affectedServices: string[];
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export function FeedbackModal({ incidentId, affectedServices, onClose }: FeedbackModalProps) {
+export function FeedbackModal({ incidentId, affectedServices, onClose, onSuccess }: FeedbackModalProps) {
   const [correctedRootCause, setCorrectedRootCause] = useState('');
   const [correctedRemediation, setCorrectedRemediation] = useState('');
   const [severity, setSeverity] = useState('critical');
@@ -27,8 +29,19 @@ export function FeedbackModal({ incidentId, affectedServices, onClose }: Feedbac
         severity,
         affected_services: services
       });
+      if (isSupabaseConfigured()) {
+        await supabase?.from('incidents').update({ status: 'Resolved' }).eq('target_id', incidentId);
+        await supabase?.from('incidents').update({ status: 'Resolved' }).eq('id', incidentId);
+      }
+      const resolvedList = JSON.parse(localStorage.getItem('intellirca_resolved_incidents') || '[]');
+      if (!resolvedList.includes(incidentId)) {
+        resolvedList.push(incidentId);
+        localStorage.setItem('intellirca_resolved_incidents', JSON.stringify(resolvedList));
+        window.dispatchEvent(new Event('storage'));
+      }
       setIsSuccess(true);
       setTimeout(() => {
+        onSuccess?.();
         onClose();
       }, 1500);
     } catch (error) {

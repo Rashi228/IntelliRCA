@@ -45,31 +45,31 @@ const MOCK_DATA = (() => {
     nodes.push({ id: 'INC-8891', group: 4, label: 'INC-8891', type: 'incident', val: 4 });
   }
 
-  // Connect them
+  // Connect them deterministically to avoid random cluster fluctuation on refresh
   // Connect services to databases
-  nodes.filter(n => n.type === 'service').forEach(s => {
-    links.push({ source: s.id, target: databases[Math.floor(Math.random() * databases.length)] });
-    if (Math.random() > 0.5) {
-      links.push({ source: s.id, target: services[Math.floor(Math.random() * services.length)] });
+  nodes.filter(n => n.type === 'service').forEach((s, idx) => {
+    links.push({ source: s.id, target: databases[idx % databases.length] });
+    if (idx % 2 === 0 && services.length > 1) {
+      links.push({ source: s.id, target: services[(idx + 1) % services.length] });
     }
   });
 
-  // Connect alerts to services/DBs
-  alerts.forEach(a => {
+  // Connect alerts to services/DBs deterministically
+  alerts.forEach((a, idx) => {
     const targets = [...services, ...databases];
-    links.push({ source: a, target: targets[Math.floor(Math.random() * targets.length)] });
+    links.push({ source: a, target: targets[idx % targets.length] });
   });
 
-  // Connect incidents to alerts
-  incidents.forEach(inc => {
-    for(let i=0; i<3; i++) {
-      links.push({ source: inc, target: alerts[Math.floor(Math.random() * alerts.length)] });
+  // Connect incidents to alerts deterministically
+  incidents.forEach((inc, idx) => {
+    for(let i=0; i<2; i++) {
+      links.push({ source: inc, target: alerts[(idx + i) % alerts.length] });
     }
   });
 
-  // Connect memories to incidents
-  memories.forEach(m => {
-    links.push({ source: m, target: incidents[Math.floor(Math.random() * incidents.length)] });
+  // Connect memories to incidents deterministically
+  memories.forEach((m, idx) => {
+    links.push({ source: m, target: incidents[idx % incidents.length] });
   });
 
   // Explicitly ensure our demo causal chain is well-connected
@@ -124,10 +124,12 @@ export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
 
     const visited = new Set<string>();
     let clustersCount = 0;
+    const clustersList: string[][] = [];
     graphData.nodes.forEach(n => {
       if (!visited.has(n.id)) {
         clustersCount++;
         const queue = [n.id];
+        const currentCluster = [n.id];
         visited.add(n.id);
         while (queue.length > 0) {
           const curr = queue.shift()!;
@@ -135,8 +137,12 @@ export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
             if (!visited.has(neighbor)) {
               visited.add(neighbor);
               queue.push(neighbor);
+              currentCluster.push(neighbor);
             }
           });
+        }
+        if (currentCluster.length >= 2) {
+          clustersList.push(currentCluster);
         }
       }
     });
@@ -145,7 +151,8 @@ export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
 
     return {
       clusters: clustersCount,
-      density: `${density}%`
+      density: `${density}%`,
+      clustersList
     };
   }, [graphData]);
 
@@ -280,11 +287,10 @@ export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
     <div className="aiops-panel flex flex-col h-full overflow-hidden relative" ref={containerRef}>
       
       {/* Top Bar */}
-      <div className="p-3.5 border-b border-blue-100 bg-white flex flex-wrap items-center justify-between gap-2 z-10 relative rounded-t-xl shadow-sm">
-        <h2 className="text-base font-bold text-slate-800 flex items-center gap-2 shrink-0">
-          <Share2 size={18} className="text-indigo-600" />
-          Semantic Knowledge Graph
-        </h2>
+      <div className="p-2.5 px-3.5 border-b border-slate-200/80 bg-white flex flex-wrap items-center justify-between gap-2 z-10 relative shadow-2xs shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-xs font-bold text-slate-700">Explore Entities & Clusters:</span>
+        </div>
         
         <div className="flex flex-wrap items-center gap-2 ml-auto">
           <div className="relative shrink-0">
@@ -341,6 +347,43 @@ export function SemanticGraph({ discoveredNodes }: SemanticGraphProps) {
               fgRef.current?.zoom(4, 1000);
             }}
             cooldownTicks={100}
+            onRenderFramePre={(ctx, globalScale) => {
+              if (globalScale < 0.2 || !clusterMetrics.clustersList) return;
+              const palette = [
+                { stroke: 'rgba(239, 68, 68, 0.45)', fill: 'rgba(239, 68, 68, 0.02)' },
+                { stroke: 'rgba(99, 102, 241, 0.45)', fill: 'rgba(99, 102, 241, 0.02)' },
+                { stroke: 'rgba(20, 184, 166, 0.45)', fill: 'rgba(20, 184, 166, 0.02)' },
+                { stroke: 'rgba(245, 158, 11, 0.45)', fill: 'rgba(245, 158, 11, 0.02)' },
+              ];
+              clusterMetrics.clustersList.forEach((clusterIds, idx) => {
+                const clusterNodes = clusterIds.map(id => graphData.nodes.find(n => n.id === id)).filter(Boolean) as any[];
+                const validNodes = clusterNodes.filter(n => n && typeof n.x === 'number' && typeof n.y === 'number');
+                if (validNodes.length >= 2) {
+                  let sumX = 0, sumY = 0;
+                  validNodes.forEach(n => { sumX += n.x; sumY += n.y; });
+                  const cx = sumX / validNodes.length;
+                  const cy = sumY / validNodes.length;
+                  let maxDist = 0;
+                  validNodes.forEach(n => {
+                    const dist = Math.hypot(n.x - cx, n.y - cy);
+                    if (dist > maxDist) maxDist = dist;
+                  });
+                  const radius = maxDist + 24;
+
+                  ctx.save();
+                  ctx.setLineDash([8 / globalScale, 6 / globalScale]);
+                  ctx.lineWidth = 1.5 / globalScale;
+                  const color = palette[idx % palette.length];
+                  ctx.strokeStyle = color.stroke;
+                  ctx.fillStyle = color.fill;
+                  ctx.beginPath();
+                  ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+                  ctx.fill();
+                  ctx.stroke();
+                  ctx.restore();
+                }
+              });
+            }}
             onEngineStop={() => {
               // Engine stopped
             }}

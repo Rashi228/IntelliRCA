@@ -87,7 +87,7 @@ export function useIntelliRCAStream() {
             supabase!.from('incidents').insert({
               target_id: incidentId,
               title: `RCA: ${stateRef.current.rcaReport.root_cause?.substring(0, 50) || 'Incident'}`,
-              status: 'Resolved',
+              status: 'Active',
               rca_report: stateRef.current.rcaReport,
               confidence: stateRef.current.rcaReport.confidence_score || 0,
               blast_radius_nodes: stateRef.current.graphNodes,
@@ -130,7 +130,14 @@ export function useIntelliRCAStream() {
     if (!isSupabaseConfigured()) return;
     const { data, error } = await supabase!.from('incidents').select('*').order('created_at', { ascending: false });
     if (!error && data) {
-      setHistoricalIncidents(data);
+      const resolvedList = JSON.parse(localStorage.getItem('intellirca_resolved_incidents') || '[]');
+      const enrichedData = data.map(inc => {
+        if (resolvedList.includes(inc.target_id) || resolvedList.includes(inc.id)) {
+          return { ...inc, status: 'Resolved' };
+        }
+        return inc;
+      });
+      setHistoricalIncidents(enrichedData);
     }
   }, []);
 

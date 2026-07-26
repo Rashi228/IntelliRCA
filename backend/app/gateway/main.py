@@ -41,22 +41,27 @@ LATEST_INCIDENT = None
 
 async def consume_incidents():
     global LATEST_INCIDENT
-    consumer = AIOKafkaConsumer(
-        KAFKA_ACTIVE_INCIDENTS_TOPIC,
-        bootstrap_servers=KAFKA_BROKER_URL,
-        group_id="gateway_polling_group",
-        value_deserializer=lambda v: json.loads(v.decode('utf-8'))
-    )
-    try:
-        await consumer.start()
-        logger.info("gateway_incident_consumer_started")
-        async for msg in consumer:
-            LATEST_INCIDENT = msg.value
-            logger.info("gateway_cached_new_incident", incident_id=msg.value.get("incident_id"))
-    except Exception as e:
-        logger.error("gateway_incident_consumer_failed", error=str(e))
-    finally:
-        await consumer.stop()
+    while True:
+        try:
+            consumer = AIOKafkaConsumer(
+                KAFKA_ACTIVE_INCIDENTS_TOPIC,
+                bootstrap_servers=KAFKA_BROKER_URL,
+                group_id="gateway_polling_group",
+                value_deserializer=lambda v: json.loads(v.decode('utf-8'))
+            )
+            await consumer.start()
+            logger.info("gateway_incident_consumer_started")
+            async for msg in consumer:
+                LATEST_INCIDENT = msg.value
+                logger.info("gateway_cached_new_incident", incident_id=msg.value.get("incident_id"))
+        except Exception as e:
+            logger.error("gateway_incident_consumer_failed", error=str(e))
+            await asyncio.sleep(3)
+        finally:
+            try:
+                await consumer.stop()
+            except Exception:
+                pass
 
 @app.on_event("startup")
 async def startup_event():

@@ -2,8 +2,8 @@ groups:
   - name: chaos_alerts
     rules:
       - alert: DatabaseConnectionLost
-        expr: rate(http_request_duration_seconds_count{code="503"}[30s]) > 0
-        for: 5s
+        expr: rate(http_request_duration_seconds_count{code="503"}[10s]) > 0
+        for: 0s
         labels:
           severity: critical
           service: user-login-api
@@ -13,8 +13,8 @@ groups:
           description: "Service is returning 503 Service Unavailable, indicating database connection failure."
           
       - alert: APITimeoutSpike
-        expr: rate(http_request_duration_seconds_count{code="500"}[30s]) > 0
-        for: 5s
+        expr: rate(http_request_duration_seconds_count{code="500"}[10s]) > 0
+        for: 0s
         labels:
           severity: high
           service: user-login-api
@@ -24,8 +24,8 @@ groups:
           description: "High rate of 500 Internal Server Errors detected on the API endpoints."
 
       - alert: NodeCPUSpike
-        expr: rate(process_cpu_user_seconds_total[30s]) > 0.5
-        for: 10s
+        expr: rate(process_cpu_user_seconds_total[10s]) > 0.5
+        for: 0s
         labels:
           severity: critical
           service: user-login-api
@@ -35,12 +35,12 @@ groups:
           description: "Node.js event loop CPU utilization is unusually high, indicating potential infinite loop or heavy load."
 
       - alert: MemoryLeakDetected
-        expr: process_resident_memory_bytes > 100000000
-        for: 10s
+        expr: process_resident_memory_bytes > 50000000
+        for: 0s
         labels:
           severity: high
           service: user-login-api
           component: memory-heap
         annotations:
           title: "Memory Leak Detected"
-          description: "Process memory has exceeded 100MB and is growing rapidly."
+          description: "Process memory has exceeded 50MB and is growing rapidly."
