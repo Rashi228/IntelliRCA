@@ -41,43 +41,56 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-[var(--color-light-bg)]">
+    <div className="min-h-screen flex flex-col justify-center items-center p-6 relative overflow-hidden bg-gradient-to-br from-blue-50 via-blue-200 to-blue-600 font-sans">
+      {/* Top Header Bar like Photo */}
+      <nav className="w-full bg-blue-600 py-4 px-8 flex items-center justify-between text-white shadow-md absolute top-0 left-0 right-0 z-20">
+        <Link to="/" className="text-2xl font-extrabold tracking-tight text-white font-sans flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+            <Activity className="w-5 h-5 text-blue-600" />
+          </div>
+          IntelliRCA
+        </Link>
+        <Link to="/signup" className="px-5 py-2 rounded-lg border border-white/40 bg-blue-600/80 hover:bg-blue-700 text-white font-semibold text-sm transition-all shadow-sm">
+          Sign Up
+        </Link>
+      </nav>
+
       {/* Background glowing effects */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100 rounded-full blur-[100px] pointer-events-none opacity-60"></div>
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-100 rounded-full blur-[100px] pointer-events-none opacity-60"></div>
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-300 rounded-full blur-[120px] pointer-events-none opacity-40"></div>
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-white rounded-full blur-[120px] pointer-events-none opacity-60"></div>
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="card-glass w-full max-w-md p-10 relative z-10"
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-10 relative z-10 border border-blue-100 mt-12"
       >
-        <div className="flex flex-col items-center mb-10">
-          <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mb-6 shadow-[0_8px_16px_rgba(37,99,235,0.1)]">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mb-5 shadow-[0_8px_16px_rgba(37,99,235,0.15)]">
             <Activity className="w-8 h-8 text-blue-600" />
           </div>
-          <h2 className="text-3xl font-extrabold text-slate-800">
-            Welcome Back
+          <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+            Welcome Back!
           </h2>
-          <p className="text-slate-500 mt-2 text-sm">Sign in to your IntelliRCA account</p>
+          <p className="text-slate-500 mt-1 text-sm font-medium">Login to your IntelliRCA account</p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center font-medium">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm text-center font-medium">
             {error}
           </div>
         )}
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
             <div className="relative">
               <Mail className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-3d pl-11"
+                className="w-full px-4 py-3 pl-11 bg-blue-50/70 border border-blue-200/80 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm font-medium"
                 placeholder="you@company.com"
                 required
               />
@@ -87,7 +100,6 @@ export function LoginPage() {
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-semibold text-slate-700">Password</label>
-              <a href="#" className="text-xs font-semibold text-blue-600 hover:text-blue-500">Forgot password?</a>
             </div>
             <div className="relative">
               <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
@@ -95,25 +107,28 @@ export function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-3d pl-11"
+                className="w-full px-4 py-3 pl-11 bg-blue-50/70 border border-blue-200/80 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm font-medium"
                 placeholder="••••••••"
                 required
               />
+            </div>
+            <div className="mt-2 text-left">
+              <a href="#" className="text-xs font-semibold text-blue-600 hover:text-blue-700">Forgot password?</a>
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full btn-primary py-3.5 flex items-center justify-center gap-2 mt-8 text-base shadow-[0_8px_16px_rgba(37,99,235,0.2)] hover:shadow-[0_4px_10px_rgba(37,99,235,0.3)]"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer border-none text-base mt-6 flex items-center justify-center gap-2"
           >
-            Sign In <ArrowRight className="w-4 h-4" />
+            Login <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
         <p className="mt-8 text-center text-sm text-slate-500 font-medium">
           Don't have an account?{' '}
           <Link to="/signup" className="text-blue-600 font-bold hover:underline">
-            Sign up now
+            Sign Up
           </Link>
         </p>
       </motion.div>
