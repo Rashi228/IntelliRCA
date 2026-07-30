@@ -73,7 +73,7 @@ export function useIntelliRCAStream() {
         }
 
         // If it's graph nodes, save them for the Topology view
-        if (data.agent === 'graph' && data.updates?.supporting_graph_nodes) {
+        if (data.agent === 'graph_analyzer' && data.updates?.supporting_graph_nodes) {
           setGraphNodes(data.updates.supporting_graph_nodes);
           stateRef.current.graphNodes = data.updates.supporting_graph_nodes;
         }

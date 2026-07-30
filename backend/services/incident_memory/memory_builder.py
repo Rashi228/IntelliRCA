@@ -58,7 +58,7 @@ class MemoryBuilder:
             f"Confidence: {rca_report.get('confidence_score')}."
         )
 
-        vector = self.embedding_engine.generate_embedding(rich_text)
+        vector = self.embedding_engine.embed_alert(rich_text)
         
         # 3. Store in Qdrant with rich metadata
         payload = {

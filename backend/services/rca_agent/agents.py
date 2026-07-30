@@ -68,9 +68,26 @@ def business_impact_agent(state: GraphState):
 def rca_agent(state: GraphState):
     logger.info("agent_executing", agent="rca")
     # Actually call the LLM for root cause
-    prompt = f"Analyze this incident: {state['raw_incident_data']}\nEvidence: {state['evidence']}"
+    import json
+    # Smart Prompt Optimization: Extract only critical fields to avoid breaking JSON structure mid-string.
+    # This preserves the AI's reasoning capabilities while massively reducing token bloat.
+    raw_data = state.get('raw_incident_data', {})
+    optimized_raw = {
+        "services": raw_data.get("affected_services"),
+        "severity": raw_data.get("severity"),
+        "time": raw_data.get("time_window")
+    }
+    
+    evidence = state.get('evidence', {})
+    # Only grab the titles/root causes of the top 2 historical incidents, drop the heavy vector metadata
+    optimized_evidence = {
+        "historical": [h.get("root_cause", h.get("title", "Past Issue")) for h in evidence.get("historical_incidents", [])[:2]],
+        "context": evidence.get("business_context")
+    }
+    
+    prompt = f"Analyze incident: {json.dumps(optimized_raw)}\nEvidence: {json.dumps(optimized_evidence)}"
     messages = [
-        SystemMessage(content="You are an expert DevOps RCA Agent. Determine the root cause of the incident."),
+        SystemMessage(content="You are an expert DevOps RCA Agent. Determine the root cause of the incident concisely."),
         HumanMessage(content=prompt)
     ]
     try:

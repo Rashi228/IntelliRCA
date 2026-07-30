@@ -8,10 +8,20 @@ from typing import Optional
 
 logger = structlog.get_logger()
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(
     title="IntelliRCA Memory API",
     description="Module 2.6: Search historical incidents and submit memory feedback.",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 metrics_app = make_asgi_app()
