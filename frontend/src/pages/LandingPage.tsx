@@ -238,51 +238,39 @@ export function LandingPage() {
             </div>
           </div>
 
-          {/* Feature 3 */}
+          {/* Workflow Diagram 1 (Feature 3 Replacement) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7 bg-white border border-blue-200/80 p-3 rounded-3xl shadow-xl shadow-blue-500/10">
               <img 
-                src="/Multi Agent AI RCA Engine.png" 
-                alt="Multi-Agent AI RCA Engine Verdict" 
+                src="/workflow-2.png" 
+                alt="Agentic Industrial Intelligence Platform Workflow" 
                 className="w-full h-auto border border-blue-100 rounded-2xl object-cover" 
               />
             </div>
             <div className="lg:col-span-5 space-y-4">
               <div className="w-8 h-8 bg-blue-600 text-white font-bold text-xs rounded-xl flex items-center justify-center shadow-sm">03</div>
-              <h3 className="text-xl font-bold text-blue-950 font-sans tracking-tight">Autonomous AI Reasoning Consensus</h3>
+              <h3 className="text-xl font-bold text-blue-950 font-sans tracking-tight">Agentic Industrial Intelligence Platform</h3>
               <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                Asynchronous LLM Agent workflows operate under Coordinator orchestration to yield final Root Cause verdicts. The console displays calculated confidence levels, estimated financial impact metrics, and step-by-step SRE mitigation command guides.
+                Our 5-stage autonomous incident resolution pipeline, integrating multi-source alert collection, HDBSCAN clustering, and LangGraph-powered Root Cause Intelligence.
               </p>
-              <div className="bg-blue-50/80 p-4 border border-blue-200 text-[11px] text-slate-700 font-mono rounded-xl">
-                <span className="font-bold text-blue-950">Module 2.8 LangGraph:</span> Executes coordinator logic yielding a 94% confidence verdict for lock contention bottlenecks.
-              </div>
             </div>
           </div>
 
-          {/* Feature 4 */}
+          {/* Workflow Diagram 2 (Feature 4 Replacement) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-5 order-2 lg:order-1 space-y-4">
               <div className="w-8 h-8 bg-blue-600 text-white font-bold text-xs rounded-xl flex items-center justify-center shadow-sm">04</div>
-              <h3 className="text-xl font-bold text-blue-950 font-sans tracking-tight">Continuous SRE Training Weight Adjuster</h3>
+              <h3 className="text-xl font-bold text-blue-950 font-sans tracking-tight">End-to-End Orchestration & Retrieval</h3>
               <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                Builds SRE confidence via transparency and learning. SREs correct AI verdicts, input custom remediations, and commit revisions directly into Qdrant databases for continuous vector indexing.
+                A complete breakdown of our data flow, from raw telemetry ingestion and structure-aware chunking, to Qdrant/Neo4j hybrid retrieval and Multi-Agent verification.
               </p>
-              <div className="bg-blue-50/80 p-4 border border-blue-200 text-[11px] text-slate-700 font-mono rounded-xl">
-                <span className="font-bold text-blue-950">Module 2.11 Learning Engine:</span> Saves SRE manual incident revisions to vector indexes as versioned nodes.
-              </div>
             </div>
-            <div className="lg:col-span-7 order-1 lg:order-2 bg-white border border-blue-200/80 p-3 rounded-3xl shadow-xl shadow-blue-500/10 flex justify-center items-center">
-              <div className="bg-blue-50/70 border border-blue-200 p-8 w-full flex justify-between items-center max-w-lg rounded-2xl">
-                <div className="space-y-1">
-                  <div className="text-[10px] font-bold text-blue-600 uppercase">Agent Confidence Standard</div>
-                  <div className="text-xs font-bold text-blue-950">Continuous Vector Index Retraining</div>
-                </div>
-                <img 
-                  src="/Agent RCA Target.png" 
-                  alt="Agent RCA Target metrics badge" 
-                  className="h-16 w-auto border border-blue-200 rounded-lg bg-white" 
-                />
-              </div>
+            <div className="lg:col-span-7 order-1 lg:order-2 bg-white border border-blue-200/80 p-3 rounded-3xl shadow-xl shadow-blue-500/10">
+              <img 
+                src="/workflow-1.png" 
+                alt="End-to-End Workflow Pipeline" 
+                className="w-full h-auto border border-blue-100 rounded-2xl object-cover" 
+              />
             </div>
           </div>
 
